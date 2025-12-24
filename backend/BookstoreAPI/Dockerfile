@@ -16,6 +16,7 @@ WORKDIR /app
 
 # Install libgdiplus for QuestPDF
 RUN apt-get update && apt-get install -y libgdiplus && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache openssl libc6-compat
 
 COPY --from=build /app/publish .
 
