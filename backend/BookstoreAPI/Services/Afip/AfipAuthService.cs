@@ -175,6 +175,12 @@ namespace BookstoreAPI.Services.Afip
 
         private static int _globalUniqueID = 0;
 
+        private static DateTime GetBuenosAiresTime()
+        {
+            var buenosAiresZone = TimeZoneInfo.FindSystemTimeZoneById("America/Buenos_Aires");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, buenosAiresZone);
+        }
+
         private string GenerateLoginTicketRequest()
         {
             string xmlTemplate = $@"<loginTicketRequest><header><source>SERIALNUMBER=CUIT {_config.CUIT}, CN=prueba2025</source><destination>CN=wsaahomo, O=AFIP, C=AR, SERIALNUMBER=CUIT 33693450239</destination><uniqueId></uniqueId><generationTime></generationTime><expirationTime></expirationTime></header><service></service></loginTicketRequest>";
@@ -189,12 +195,9 @@ namespace BookstoreAPI.Services.Afip
             var xmlNodoExpirationTime = xmlDoc.SelectSingleNode("//expirationTime") ?? throw new Exception("No se encontró nodo expirationTime");
             var xmlNodoService = xmlDoc.SelectSingleNode("//service") ?? throw new Exception("No se encontró nodo service");
 
-            xmlNodoGenerationTime.InnerText = DateTime.Now.AddMinutes(-10).ToString("s");
-            xmlNodoExpirationTime.InnerText = DateTime.Now.AddMinutes(+10).ToString("s");
-
-            _logger.LogInformation("fecha generacion", xmlNodoGenerationTime.InnerText);
-            _logger.LogInformation("fecha expiracion", xmlNodoExpirationTime.InnerText);
-            
+            var buenosAiresNow = GetBuenosAiresTime();
+            xmlNodoGenerationTime.InnerText = buenosAiresNow.AddMinutes(-10).ToString("s");
+            xmlNodoExpirationTime.InnerText = buenosAiresNow.AddMinutes(+10).ToString("s");          
 
             xmlNodoUniqueId.InnerText = Convert.ToString(_globalUniqueID);
             xmlNodoService.InnerText = "wsfe";

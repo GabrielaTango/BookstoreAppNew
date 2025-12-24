@@ -14,10 +14,16 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Install libgdiplus for QuestPDF and openssl
+# Set timezone to Buenos Aires
+ENV TZ=America/Buenos_Aires
+
+# Install libgdiplus for QuestPDF, openssl and timezone data
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgdiplus \
     openssl \
+    tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
