@@ -191,6 +191,11 @@ namespace BookstoreAPI.Services.Afip
 
             xmlNodoGenerationTime.InnerText = DateTime.Now.AddMinutes(-10).ToString("s");
             xmlNodoExpirationTime.InnerText = DateTime.Now.AddMinutes(+10).ToString("s");
+
+            _logger.LogInformation("fecha generacion", xmlNodoGenerationTime.InnerText);
+            _logger.LogInformation("fecha expiracion", xmlNodoExpirationTime.InnerText);
+            
+
             xmlNodoUniqueId.InnerText = Convert.ToString(_globalUniqueID);
             xmlNodoService.InnerText = "wsfe";
 
