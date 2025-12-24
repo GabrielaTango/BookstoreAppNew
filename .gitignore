@@ -35,3 +35,7 @@ Thumbs.db
 
 # Claude
 CLAUDE.md
+
+# Certificates (sensitive)
+certificates/
+*.pfx
