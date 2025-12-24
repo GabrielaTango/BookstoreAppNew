@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Factura - Sistema de Facturación</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            
+            --bg-main: #f8f9fe;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: var(--sidebar-bg);
+            padding: 1.5rem 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-brand {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-brand h4 {
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar-brand .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .sidebar-menu a:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        
+        .sidebar-menu a.active {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        
+        .sidebar-menu a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .sidebar-menu i {
+            font-size: 1.25rem;
+            width: 24px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        /* Page Header */
+        .page-header {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-header .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .btn-secondary-action {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: white;
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        
+        .btn-secondary-action:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        /* Form Layout */
+        .form-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .card-header-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .card-header-custom h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+        
+        .card-header-custom i {
+            font-size: 1.5rem;
+            color: #667eea;
+        }
+        
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .form-group label .required {
+            color: #ef4444;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        select.form-control {
+            appearance: none;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E") no-repeat right 1rem center;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Items Table */
+        .items-section {
+            margin-top: 2rem;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .items-table thead th {
+            background: var(--bg-main);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .items-table thead th:first-child {
+            border-radius: 12px 0 0 0;
+        }
+        
+        .items-table thead th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+        
+        .items-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .items-table tbody tr:hover {
+            background: var(--bg-main);
+        }
+        
+        .items-table input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .items-table input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-remove {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        .btn-add-item {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn-add-item:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        /* Summary Card */
+        .summary-card {
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 2px solid var(--border-color);
+        }
+        
+        .summary-row.total {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .summary-value {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .summary-row.total .summary-value {
+            color: #667eea;
+        }
+        
+        /* Action Buttons */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-primary {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-outline {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-outline:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        /* Alert */
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .alert-info i {
+            font-size: 1.25rem;
+            color: #2563eb;
+            flex-shrink: 0;
+        }
+        
+        .alert-info p {
+            margin: 0;
+            color: #1e40af;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        /* Input with Icon */
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .input-group .form-control {
+            padding-left: 3rem;
+        }
+        
+        /* Payment Method Pills */
+        .payment-methods {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .payment-pill {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .payment-pill:hover {
+            border-color: #667eea;
+        }
+        
+        .payment-pill.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .form-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-card {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h4>
+                <div class="brand-icon">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <span>FacturaApp</span>
+            </h4>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="dashboard.html">
+                    <i class="fa-solid fa-grip"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="active">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <span>Nueva Factura</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Facturas</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-box"></i>
+                    <span>Productos</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Pagos</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <div class="icon-circle">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                </div>
+                Nueva Factura
+            </h1>
+            <a href="dashboard.html" class="btn-secondary-action">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+        
+        <!-- Alert Info -->
+        <div class="alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Complete todos los campos requeridos para generar la factura. Los campos marcados con <span style="color: #ef4444;">*</span> son obligatorios.</p>
+        </div>
+        
+        <!-- Form Container -->
+        <div class="form-container">
+            <!-- Main Form -->
+            <div>
+                <!-- Client Information -->
+                <div class="card">
+                    <div class="card-header-custom">
+                        <i class="fa-solid fa-user"></i>
+                        <h5>Información del Cliente</h5>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cliente <span class="required">*</span></label>
+                        <select class="form-control">
+                            <option value="">Seleccionar cliente...</option>
+                            <option value="1">María González - CUIT 20-12345678-9</option>
+                            <option value="2">Carlos Rodríguez - CUIT 20-98765432-1</option>
+                            <option value="3">Ana Martínez - CUIT 27-11223344-5</option>
+                            <option value="4">Pedro López - CUIT 23-55667788-9</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CUIT/DNI <span class="required">*</span></label>
+                            <div class="input-group">
+                                <i class="fa-solid fa-id-card"></i>
+                                <input type="text" class="form-control" placeholder="20-12345678-9" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Condición IVA <span class="required">*</span></label>
+                            <input type="text" class="form-control" value="Responsable Inscripto" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <div class="input-group">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" class="form-control" placeholder="Av. Corrientes 1234, CABA" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice Details -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-header-custom">
+                        <i class="fa-solid fa-receipt"></i>
+                        <h5>Detalles de la Factura</h5>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Comprobante <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option value="">Seleccionar...</option>
+                                <option value="A">Factura A</option>
+                                <option value="B">Factura B</option>
+                                <option value="C">Factura C</option>
+                                <option value="E">Factura E (Exportación)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Punto de Venta <span class="required">*</span></label>
+                            <input type="number" class="form-control" placeholder="0001" value="0001">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fecha de Emisión <span class="required">*</span></label>
+                            <input type="date" class="form-control" value="2025-12-18">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha de Vencimiento</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Condición de Pago</label>
+                            <select class="form-control">
+                                <option value="contado">Contado</option>
+                                <option value="30">30 días</option>
+                                <option value="60">60 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Moneda</label>
+                            <select class="form-control">
+                                <option value="ARS">Pesos (ARS)</option>
+                                <option value="USD">Dólares (USD)</option>
+                                <option value="EUR">Euros (EUR)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Observaciones</label>
+                        <textarea class="form-control" rows="3" placeholder="Comentarios adicionales sobre la factura..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Items Section -->
+                <div class="card items-section" style="margin-top: 1.5rem;">
+                    <div class="card-header-custom">
+                        <i class="fa-solid fa-list"></i>
+                        <h5>Items de la Factura</h5>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%">#</th>
+                                    <th style="width: 35%">Descripción</th>
+                                    <th style="width: 15%">Cantidad</th>
+                                    <th style="width: 15%">Precio Unit.</th>
+                                    <th style="width: 12%">IVA %</th>
+                                    <th style="width: 15%">Total</th>
+                                    <th style="width: 8%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-tbody">
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        <input type="text" placeholder="Descripción del producto o servicio" value="Servicio de Consultoría">
+                                    </td>
+                                    <td>
+                                        <input type="number" placeholder="1" value="10" min="1">
+                                    </td>
+                                    <td>
+                                        <input type="number" placeholder="0.00" value="5000" step="0.01">
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option value="0">0%</option>
+                                            <option value="10.5">10.5%</option>
+                                            <option value="21" selected>21%</option>
+                                            <option value="27">27%</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <strong style="font-family: 'JetBrains Mono', monospace;">$50,000.00</strong>
+                                    </td>
+                                    <td>
+                                        <button class="btn-remove" onclick="removeItem(this)">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>
+                                        <input type="text" placeholder="Descripción del producto o servicio" value="Licencia de Software">
+                                    </td>
+                                    <td>
+                                        <input type="number" placeholder="1" value="1" min="1">
+                                    </td>
+                                    <td>
+                                        <input type="number" placeholder="0.00" value="15000" step="0.01">
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option value="0">0%</option>
+                                            <option value="10.5">10.5%</option>
+                                            <option value="21" selected>21%</option>
+                                            <option value="27">27%</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <strong style="font-family: 'JetBrains Mono', monospace;">$15,000.00</strong>
+                                    </td>
+                                    <td>
+                                        <button class="btn-remove" onclick="removeItem(this)">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <button class="btn-add-item" onclick="addItem()">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        Agregar Item
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Summary Sidebar -->
+            <div>
+                <div class="card summary-card">
+                    <div class="card-header-custom">
+                        <i class="fa-solid fa-calculator"></i>
+                        <h5>Resumen</h5>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal</span>
+                        <span class="summary-value">$65,000.00</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">IVA 21%</span>
+                        <span class="summary-value">$13,650.00</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Descuento</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-row total">
+                        <span class="summary-label">Total</span>
+                        <span class="summary-value">$78,650.00</span>
+                    </div>
+                    
+                    <div style="margin-top: 2rem;">
+                        <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Método de Pago</label>
+                        <div class="payment-methods">
+                            <div class="payment-pill active">
+                                <i class="fa-solid fa-money-bill-1"></i>
+                                Efectivo
+                            </div>
+                            <div class="payment-pill">
+                                <i class="fa-solid fa-credit-card"></i>
+                                Tarjeta
+                            </div>
+                            <div class="payment-pill">
+                                <i class="fa-solid fa-building-columns"></i>
+                                Transferencia
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn-outline">
+                            <i class="fa-solid fa-eye"></i>
+                            Vista Previa
+                        </button>
+                    </div>
+                    
+                    <button class="btn-primary">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Generar Factura
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Add Item Function
+        let itemCounter = 2;
+        function addItem() {
+            itemCounter++;
+            const tbody = document.getElementById('items-tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${itemCounter}</td>
+                <td>
+                    <input type="text" placeholder="Descripción del producto o servicio">
+                </td>
+                <td>
+                    <input type="number" placeholder="1" value="1" min="1">
+                </td>
+                <td>
+                    <input type="number" placeholder="0.00" value="0" step="0.01">
+                </td>
+                <td>
+                    <select>
+                        <option value="0">0%</option>
+                        <option value="10.5">10.5%</option>
+                        <option value="21" selected>21%</option>
+                        <option value="27">27%</option>
+                    </select>
+                </td>
+                <td>
+                    <strong style="font-family: 'JetBrains Mono', monospace;">$0.00</strong>
+                </td>
+                <td>
+                    <button class="btn-remove" onclick="removeItem(this)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+        }
+        
+        // Remove Item Function
+        function removeItem(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateItemNumbers();
+        }
+        
+        // Update Item Numbers
+        function updateItemNumbers() {
+            const rows = document.querySelectorAll('#items-tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('td:first-child').textContent = index + 1;
+            });
+            itemCounter = rows.length;
+        }
+        
+        // Payment Method Selection
+        document.querySelectorAll('.payment-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.payment-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

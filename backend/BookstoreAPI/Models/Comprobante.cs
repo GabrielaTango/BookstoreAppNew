@@ -1,0 +1,20 @@
+namespace BookstoreAPI.Models
+{
+    public class Comprobante
+    {
+        public int Id { get; set; }
+        public int Cliente_Id { get; set; }
+        public DateTime Fecha { get; set; }
+        public string? TipoComprobante { get; set; }
+        public string? NumeroComprobante { get; set; }
+        public decimal Total { get; set; }
+        public string? CAE { get; set; }
+        public DateTime? VTO { get; set; }
+        public decimal? Bonificacion { get; set; }
+        public decimal? PorcentajeBonif { get; set; }
+        public decimal? Anticipo { get; set; }
+        public int? Cuotas { get; set; }
+        public decimal? ValorCuota { get; set; }
+        public int? Vendedor_Id { get; set; }
+    }
+}

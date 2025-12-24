@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend/BookstoreAPI
+      dockerfile: Dockerfile
+    container_name: bookstore-api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=server=179.43.121.202;database=BookstoreApp;user=bookstore;password=1234!;
+    networks:
+      - bookstore-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend/bookstore-app
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+    container_name: bookstore-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    networks:
+      - bookstore-network
+    restart: unless-stopped
+
+networks:
+  bookstore-network:
+    driver: bridge

@@ -1,0 +1,225 @@
+/**
+ * Sidebar Component
+ *
+ * Main navigation sidebar with theme-consistent design.
+ * Features: Dark theme, gradient brand icon, active state indicators, mobile toggle.
+ */
+
+import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Icon } from './Icon';
+
+const Sidebar = () => {
+  const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  const closeMobileMenu = () => {
+    if (window.innerWidth <= 768) {
+      setIsMobileOpen(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Mobile Menu Toggle */}
+      <button
+        className="menu-toggle"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        aria-label="Toggle menu"
+      >
+        <Icon name={isMobileOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'} />
+      </button>
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${isMobileOpen ? 'show' : ''}`}>
+        {/* Brand */}
+        <div className="sidebar-brand">
+          <h4>
+            { /*<div className="brand-icon">
+              <Icon name="fa-solid fa-receipt" />
+            </div> */
+            }
+            <span>Ediciones</span>
+            <span> Liber</span>
+          </h4>
+        </div>
+
+        {/* Main Navigation */}
+        <ul className="sidebar-menu">
+          <li>
+            <Link
+              to="/"
+              className={isActive('/') && location.pathname === '/' ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-gauge" />
+              <span>Dashboard</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/comprobantes"
+              className={isActive('/comprobantes') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-receipt" />
+              <span>Comprobantes</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/clientes"
+              className={isActive('/clientes') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-users" />
+              <span>Clientes</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/articulos"
+              className={isActive('/articulos') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-box" />
+              <span>Artículos</span>
+            </Link>
+          </li>
+                    {/* References Section */}
+          <li style={{ marginTop: '2rem' }}>
+            <div
+              style={{
+                padding: '0.5rem 1.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              Listados
+            </div>
+          </li>
+          <li>
+            <Link
+              to="/iva-ventas"
+              className={isActive('/iva-ventas') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-file-lines" />
+              <span>IVA Ventas</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/gastos"
+              className={isActive('/gastos') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-money-bill-trend-up" />
+              <span>Gastos</span>
+            </Link>
+          </li>
+
+          {/* References Section */}
+          <li style={{ marginTop: '2rem' }}>
+            <div
+              style={{
+                padding: '0.5rem 1.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              Referencias
+            </div>
+          </li>
+          <li>
+            <Link
+              to="/vendedores"
+              className={isActive('/vendedores') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-user-tie" />
+              <span>Vendedores</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/zonas"
+              className={isActive('/zonas') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-location-dot" />
+              <span>Zonas</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/subzonas"
+              className={isActive('/subzonas') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-map-location-dot" />
+              <span>SubZonas</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/provincias"
+              className={isActive('/provincias') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-map" />
+              <span>Provincias</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/categorias-gasto"
+              className={isActive('/categorias-gasto') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-tags" />
+              <span>Categorías Gasto</span>
+            </Link>
+          </li>
+        </ul>
+
+        {/* User Section (Optional - commented out for now) */}
+        {/*
+        <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="d-flex align-items-center text-white">
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'var(--primary-gradient)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '0.75rem',
+              fontWeight: 600
+            }}>
+              U
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Usuario</div>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>Administrador</div>
+            </div>
+          </div>
+        </div>
+        */}
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;

@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Facturación</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons (alternativa) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            
+            --bg-main: #f8f9fe;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: var(--sidebar-bg);
+            padding: 1.5rem 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-brand {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-brand h4 {
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar-brand .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .sidebar-menu a:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        
+        .sidebar-menu a.active {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        
+        .sidebar-menu a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .sidebar-menu i {
+            font-size: 1.25rem;
+            width: 24px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .header-left p {
+            color: var(--text-secondary);
+            margin: 0.25rem 0 0;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        
+        .notification-btn {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-btn:hover {
+            background: var(--border-color);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            background: var(--bg-main);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile:hover {
+            background: var(--border-color);
+        }
+        
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .user-info h6 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .user-info p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+        }
+        
+        .stat-card.primary::before { background: var(--primary-gradient); }
+        .stat-card.success::before { background: var(--success-gradient); }
+        .stat-card.danger::before { background: var(--danger-gradient); }
+        .stat-card.warning::before { background: var(--warning-gradient); }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .stat-card.primary .stat-icon { background: var(--primary-gradient); }
+        .stat-card.success .stat-icon { background: var(--success-gradient); }
+        .stat-card.danger .stat-icon { background: var(--danger-gradient); }
+        .stat-card.warning .stat-icon { background: var(--warning-gradient); }
+        
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .stat-trend.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+        
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+        
+        .stat-body h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .stat-body p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Charts & Tables Section */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            border: none;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .card-header h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-icon:hover {
+            background: var(--border-color);
+        }
+        
+        /* Recent Activity */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.primary { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+        .activity-icon.success { background: rgba(17, 153, 142, 0.1); color: #11998e; }
+        .activity-icon.danger { background: rgba(238, 9, 121, 0.1); color: #ee0979; }
+        .activity-icon.warning { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-content h6 {
+            margin: 0 0 0.25rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .activity-content p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        
+        /* Table */
+        .table-responsive {
+            margin-top: 1rem;
+        }
+        
+        .custom-table {
+            width: 100%;
+        }
+        
+        .custom-table thead th {
+            background: var(--bg-main);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border: none;
+        }
+        
+        .custom-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .custom-table tbody tr:hover {
+            background: var(--bg-main);
+        }
+        
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .badge-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+        
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+        
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+        
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+        
+        /* Buttons */
+        .btn-gradient {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Chart Placeholder */
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h4>
+                <div class="brand-icon">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <span>FacturaApp</span>
+            </h4>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="active">
+                    <i class="fa-solid fa-grip"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="factura-nueva.html">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <span>Nueva Factura</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Facturas</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-box"></i>
+                    <span>Productos</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Pagos</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>Dashboard</h1>
+                <p>Bienvenido de nuevo, aquí está tu resumen del día</p>
+            </div>
+            
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Buscar facturas, clientes...">
+                </div>
+                
+                <button class="notification-btn">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notification-badge"></span>
+                </button>
+                
+                <div class="user-profile">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-info">
+                        <h6>Juan Pérez</h6>
+                        <p>Administrador</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-money-bills"></i>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        12.5%
+                    </div>
+                </div>
+                <div class="stat-body">
+                    <h3>$124,580</h3>
+                    <p>Ingresos del mes</p>
+                </div>
+            </div>
+            
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        8.2%
+                    </div>
+                </div>
+                <div class="stat-body">
+                    <h3>342</h3>
+                    <p>Facturas pagadas</p>
+                </div>
+            </div>
+            
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="stat-trend down">
+                        <i class="fa-solid fa-arrow-down"></i>
+                        3.1%
+                    </div>
+                </div>
+                <div class="stat-body">
+                    <h3>28</h3>
+                    <p>Facturas pendientes</p>
+                </div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        5.4%
+                    </div>
+                </div>
+                <div class="stat-body">
+                    <h3>$18,420</h3>
+                    <p>Deuda vencida</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Chart Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fa-solid fa-chart-bar me-2"></i>Ventas Mensuales</h5>
+                    <div class="card-actions">
+                        <button class="btn-icon"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    📊 Gráfico de ventas (integrar Chart.js o similar)
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-clock-history me-2"></i>Actividad Reciente</h5>
+                </div>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon success">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Factura #FC-0345 pagada</h6>
+                            <p>Cliente: María González</p>
+                        </div>
+                        <span class="activity-time">Hace 5 min</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon primary">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Nueva factura creada</h6>
+                            <p>Factura #FC-0346</p>
+                        </div>
+                        <span class="activity-time">Hace 1 hora</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Factura próxima a vencer</h6>
+                            <p>Factura #FC-0298 - 2 días</p>
+                        </div>
+                        <span class="activity-time">Hace 3 horas</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon danger">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Pago rechazado</h6>
+                            <p>Tarjeta terminada en 4523</p>
+                        </div>
+                        <span class="activity-time">Hace 5 horas</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Recent Invoices Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fa-solid fa-receipt me-2"></i>Facturas Recientes</h5>
+                <button class="btn-gradient">
+                    <i class="fa-solid fa-plus"></i>
+                    Nueva Factura
+                </button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>#FC-0346</strong></td>
+                            <td>María González</td>
+                            <td>18 Dic 2025</td>
+                            <td><strong>$4,250.00</strong></td>
+                            <td><span class="badge badge-success">Pagada</span></td>
+                            <td>
+                                <button class="btn-icon"><i class="fa-solid fa-eye"></i></button>
+                                <button class="btn-icon"><i class="fa-solid fa-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>#FC-0345</strong></td>
+                            <td>Carlos Rodríguez</td>
+                            <td>17 Dic 2025</td>
+                            <td><strong>$1,890.50</strong></td>
+                            <td><span class="badge badge-warning">Pendiente</span></td>
+                            <td>
+                                <button class="btn-icon"><i class="fa-solid fa-eye"></i></button>
+                                <button class="btn-icon"><i class="fa-solid fa-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>#FC-0344</strong></td>
+                            <td>Ana Martínez</td>
+                            <td>16 Dic 2025</td>
+                            <td><strong>$3,120.00</strong></td>
+                            <td><span class="badge badge-success">Pagada</span></td>
+                            <td>
+                                <button class="btn-icon"><i class="fa-solid fa-eye"></i></button>
+                                <button class="btn-icon"><i class="fa-solid fa-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>#FC-0343</strong></td>
+                            <td>Pedro López</td>
+                            <td>15 Dic 2025</td>
+                            <td><strong>$890.00</strong></td>
+                            <td><span class="badge badge-danger">Vencida</span></td>
+                            <td>
+                                <button class="btn-icon"><i class="fa-solid fa-eye"></i></button>
+                                <button class="btn-icon"><i class="fa-solid fa-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>#FC-0342</strong></td>
+                            <td>Laura Sánchez</td>
+                            <td>14 Dic 2025</td>
+                            <td><strong>$5,670.25</strong></td>
+                            <td><span class="badge badge-info">Procesando</span></td>
+                            <td>
+                                <button class="btn-icon"><i class="fa-solid fa-eye"></i></button>
+                                <button class="btn-icon"><i class="fa-solid fa-download"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
