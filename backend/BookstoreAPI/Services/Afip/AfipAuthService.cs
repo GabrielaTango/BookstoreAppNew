@@ -1,5 +1,6 @@
 using BookstoreAPI.Models.Afip;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
@@ -103,8 +104,8 @@ namespace BookstoreAPI.Services.Afip
             {
                 Token = token,
                 Sign = sign,
-                ExpirationTime = DateTime.Parse(expirationText),
-                GenerationTime = DateTime.Parse(generationText)
+                ExpirationTime = DateTime.Parse(expirationText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+                GenerationTime = DateTime.Parse(generationText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
             };
         }
 
@@ -274,8 +275,8 @@ namespace BookstoreAPI.Services.Afip
                 {
                     Token = token,
                     Sign = sign,
-                    ExpirationTime = DateTime.Parse(expirationTime),
-                    GenerationTime = DateTime.Parse(generationTime)
+                    ExpirationTime = DateTime.Parse(expirationTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+                    GenerationTime = DateTime.Parse(generationTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
                 };
             }
             catch (Exception ex)
