@@ -14,9 +14,8 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Install libgdiplus for QuestPDF
-RUN apt-get update && apt-get install -y libgdiplus && rm -rf /var/lib/apt/lists/*
-RUN apk update && apk add --no-cache openssl libc6-compat
+# Install libgdiplus for QuestPDF, openssl and libc6-compat
+RUN apt-get update && apt-get install -y libgdiplus openssl libc6-compat && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
 
