@@ -194,7 +194,7 @@ const Dashboard = () => {
                   <div
                     className="card text-white text-center p-4"
                     style={{
-                      background: 'var(--info-gradient)',
+                      background: 'var(--success-gradient)',
                       cursor: 'pointer',
                       transition: 'var(--transition-base)'
                     }}
@@ -217,6 +217,7 @@ const Dashboard = () => {
                       justifyContent: 'center',
                       margin: '0 auto 1rem'
                     }}>
+                    
                       <Icon name="fa-solid fa-box-open" style={{ fontSize: '2rem' }} />
                     </div>
                     <h6 className="mb-0 fw-bold">Nuevo Artículo</h6>
@@ -228,7 +229,8 @@ const Dashboard = () => {
                   <div
                     className="card text-white text-center p-4"
                     style={{
-                      background: 'var(--success-gradient)',
+                      background: 'var(--info-gradient)',
+                      
                       cursor: 'pointer',
                       transition: 'var(--transition-base)'
                     }}
