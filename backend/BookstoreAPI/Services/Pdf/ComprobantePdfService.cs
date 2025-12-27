@@ -78,7 +78,7 @@ namespace BookstoreAPI.Services.Pdf
                                 .Text(DeterminarTipoComprobanteTexto("")).FontSize(16).Bold();
                         });
                     });
-                    column.Item().Width(100).Image("\\Images\\LiberLogo.png");
+                    column.Item().Width(100).Image("./Images/LiberLogo.png");
                     column.Item().Text($"CUIT: {_config.CUIT}").FontSize(10);
                     column.Item().Text("Dirección: Calle Falsa 123").FontSize(9);
                     column.Item().Text("Tel: (011) 1234-5678").FontSize(9);
