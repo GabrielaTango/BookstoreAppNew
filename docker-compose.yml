@@ -11,7 +11,7 @@ services:
       - ConnectionStrings__DefaultConnection=server=179.43.121.202;database=BookstoreApp;user=bookstore;password=1234!;
     volumes:
       - ./Certificates:/app/Certificates:ro
-      - ./Images:/app/Images:ro
+      - ./backend/BookstoreAPI/Images:/app/Images:ro
     networks:
       - bookstore-network
     restart: unless-stopped
