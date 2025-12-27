@@ -2,7 +2,7 @@ import api from './api';
 import type { Comprobante, CreateComprobanteDto, UpdateComprobanteDto } from '../types/comprobante';
 import type { IvaVenta } from '../types/dashboard';
 
-const API_BASE_URL = 'http://localhost:5184/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5184/api';
 
 export const comprobanteService = {
   getAll: async (): Promise<Comprobante[]> => {
