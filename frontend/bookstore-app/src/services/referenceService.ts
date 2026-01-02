@@ -1,10 +1,11 @@
 import api from './api';
 import type {
-  Zona, SubZona, Provincia, Vendedor,
+  Zona, SubZona, Provincia, Vendedor, Transporte,
   CreateZonaDto, UpdateZonaDto,
   CreateSubZonaDto, UpdateSubZonaDto,
   CreateProvinciaDto, UpdateProvinciaDto,
-  CreateVendedorDto, UpdateVendedorDto
+  CreateVendedorDto, UpdateVendedorDto,
+  CreateTransporteDto, UpdateTransporteDto
 } from '../types/references';
 
 export const referenceService = {
@@ -106,5 +107,30 @@ export const referenceService = {
 
   deleteVendedor: async (id: number): Promise<void> => {
     await api.delete(`/references/vendedores/${id}`);
+  },
+
+  // Transportes
+  getTransportes: async (): Promise<Transporte[]> => {
+    const response = await api.get<Transporte[]>('/references/transportes');
+    return response.data;
+  },
+
+  getTransporteById: async (id: number): Promise<Transporte> => {
+    const response = await api.get<Transporte>(`/references/transportes/${id}`);
+    return response.data;
+  },
+
+  createTransporte: async (data: CreateTransporteDto): Promise<Transporte> => {
+    const response = await api.post<Transporte>('/references/transportes', data);
+    return response.data;
+  },
+
+  updateTransporte: async (id: number, data: UpdateTransporteDto): Promise<Transporte> => {
+    const response = await api.put<Transporte>(`/references/transportes/${id}`, data);
+    return response.data;
+  },
+
+  deleteTransporte: async (id: number): Promise<void> => {
+    await api.delete(`/references/transportes/${id}`);
   },
 };

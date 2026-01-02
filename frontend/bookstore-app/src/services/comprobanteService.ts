@@ -1,6 +1,7 @@
 import api from './api';
 import type { Comprobante, CreateComprobanteDto, UpdateComprobanteDto } from '../types/comprobante';
 import type { IvaVenta } from '../types/dashboard';
+import type { DeudoresReporte } from '../types/deudores';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5184/api';
 
@@ -39,6 +40,11 @@ export const comprobanteService = {
     window.open(pdfUrl, '_blank');
   },
 
+  openCompletoPdf: (id: number): void => {
+    const pdfUrl = `${API_BASE_URL}/comprobantes/${id}/completo-pdf`;
+    window.open(pdfUrl, '_blank');
+  },
+
   getIvaVentas: async (fechaDesde: string, fechaHasta: string): Promise<IvaVenta[]> => {
     const response = await api.get<IvaVenta[]>(`/comprobantes/iva-ventas?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`);
     return response.data;
@@ -47,5 +53,10 @@ export const comprobanteService = {
   openIvaVentasPdf: (fechaDesde: string, fechaHasta: string): void => {
     const pdfUrl = `${API_BASE_URL}/comprobantes/iva-ventas-pdf?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
     window.open(pdfUrl, '_blank');
+  },
+
+  getDeudores: async (mes: number, anio: number): Promise<DeudoresReporte> => {
+    const response = await api.get<DeudoresReporte>(`/comprobantes/deudores?mes=${mes}&anio=${anio}`);
+    return response.data;
   },
 };

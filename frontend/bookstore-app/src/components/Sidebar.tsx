@@ -72,6 +72,16 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
+              to="/remitos"
+              className={isActive('/remitos') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-file-invoice" />
+              <span>Remitos</span>
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/clientes"
               className={isActive('/clientes') ? 'active' : ''}
               onClick={closeMobileMenu}
@@ -117,6 +127,26 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
+              to="/deudores"
+              className={isActive('/deudores') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-file-invoice-dollar" />
+              <span>Deudores</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/cuotas"
+              className={isActive('/cuotas') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-money-check-dollar" />
+              <span>Cuotas</span>
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/gastos"
               className={isActive('/gastos') ? 'active' : ''}
               onClick={closeMobileMenu}
@@ -149,6 +179,16 @@ const Sidebar = () => {
             >
               <Icon name="fa-solid fa-user-tie" />
               <span>Vendedores</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/transportes"
+              className={isActive('/transportes') ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
+              <Icon name="fa-solid fa-truck" />
+              <span>Transportes</span>
             </Link>
           </li>
           <li>

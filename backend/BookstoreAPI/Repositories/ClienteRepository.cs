@@ -158,5 +158,16 @@ namespace BookstoreAPI.Repositories
             var count = await connection.ExecuteScalarAsync<int>(query, new { Id = id });
             return count > 0;
         }
+
+        public async Task<int> GetNextCodigoAsync()
+        {
+            const string query = @"
+                SELECT COALESCE(MAX(CAST(Codigo AS UNSIGNED)), 0) + 1
+                FROM clientes
+                WHERE Codigo REGEXP '^[0-9]+$'";
+
+            using var connection = _context.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>(query);
+        }
     }
 }

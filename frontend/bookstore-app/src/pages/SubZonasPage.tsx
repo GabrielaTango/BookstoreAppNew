@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { referenceService } from '../services/referenceService';
-import type { SubZona, CreateSubZonaDto, UpdateSubZonaDto } from '../types/references';
+import type { SubZona, CreateSubZonaDto, UpdateSubZonaDto, Provincia } from '../types/references';
 import { PageHeader } from '../components/PageHeader';
 import { GradientButton } from '../components/GradientButton';
 import { IconButton } from '../components/IconButton';
 
 const SubZonasPage = () => {
   const [subzonas, setSubZonas] = useState<SubZona[]>([]);
+  const [provincias, setProvincias] = useState<Provincia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -16,11 +17,32 @@ const SubZonasPage = () => {
   const [formData, setFormData] = useState<CreateSubZonaDto | UpdateSubZonaDto>({
     codigo: '',
     descripcion: '',
+    provinciaId: 0,
+    codigoPostal: '',
+    localidad: '',
   });
 
   useEffect(() => {
-    loadSubZonas();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [subzonasData, provinciasData] = await Promise.all([
+        referenceService.getSubZonas(),
+        referenceService.getProvincias()
+      ]);
+      setSubZonas(subzonasData);
+      setProvincias(provinciasData);
+    } catch (err) {
+      setError('Error al cargar los datos');
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadSubZonas = async () => {
     try {
@@ -38,7 +60,13 @@ const SubZonasPage = () => {
 
   const handleCreate = () => {
     setEditingSubZona(null);
-    setFormData({ codigo: '', descripcion: '' });
+    setFormData({
+      codigo: '',
+      descripcion: '',
+      provinciaId: 0,
+      codigoPostal: '',
+      localidad: '',
+    });
     setShowModal(true);
   };
 
@@ -47,6 +75,9 @@ const SubZonasPage = () => {
     setFormData({
       codigo: subzona.codigo || '',
       descripcion: subzona.descripcion || '',
+      provinciaId: subzona.provinciaId || 0,
+      codigoPostal: subzona.codigoPostal || '',
+      localidad: subzona.localidad || '',
     });
     setShowModal(true);
   };
@@ -62,6 +93,21 @@ const SubZonasPage = () => {
 
     if (!formData.codigo.trim() || !formData.descripcion.trim()) {
       setError('Código y descripción son obligatorios');
+      return;
+    }
+
+    if (!formData.provinciaId || formData.provinciaId === 0) {
+      setError('La provincia es obligatoria');
+      return;
+    }
+
+    if (!formData.codigoPostal.trim()) {
+      setError('El código postal es obligatorio');
+      return;
+    }
+
+    if (!formData.localidad.trim()) {
+      setError('La localidad es obligatoria');
       return;
     }
 
@@ -96,9 +142,13 @@ const SubZonasPage = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'provinciaId') {
+      setFormData((prev) => ({ ...prev, [name]: parseInt(value) || 0 }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -128,6 +178,9 @@ const SubZonasPage = () => {
                   <tr>
                     <th>Código</th>
                     <th>Descripción</th>
+                    <th>Provincia</th>
+                    <th>Código Postal</th>
+                    <th>Localidad</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -136,6 +189,9 @@ const SubZonasPage = () => {
                     <tr key={subzona.id}>
                       <td>{subzona.codigo || '-'}</td>
                       <td>{subzona.descripcion || '-'}</td>
+                      <td>{subzona.provinciaDescripcion || '-'}</td>
+                      <td>{subzona.codigoPostal || '-'}</td>
+                      <td>{subzona.localidad || '-'}</td>
                       <td>
                         <IconButton
                           icon="fa-solid fa-pen"
@@ -203,6 +259,55 @@ const SubZonasPage = () => {
                       value={formData.descripcion}
                       onChange={handleChange}
                       placeholder="Descripción"
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">
+                      Provincia <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      name="provinciaId"
+                      value={formData.provinciaId}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value={0}>Seleccione una provincia</option>
+                      {provincias.map((provincia) => (
+                        <option key={provincia.id} value={provincia.id}>
+                          {provincia.descripcion}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">
+                      Código Postal <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="codigoPostal"
+                      value={formData.codigoPostal}
+                      onChange={handleChange}
+                      placeholder="Código Postal"
+                      maxLength={10}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">
+                      Localidad <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="localidad"
+                      value={formData.localidad}
+                      onChange={handleChange}
+                      placeholder="Localidad"
                       maxLength={100}
                       required
                     />

@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `comprobantes` (
   `Bonificacion` decimal(17,2) DEFAULT NULL,
   `PorcentajeBonif` decimal(17,0) DEFAULT NULL,
   `Anticipo` decimal(17,2) DEFAULT NULL,
+  `ContraEntrega` decimal(17,2) DEFAULT 0,
   `Cuotas` int DEFAULT NULL,
   `ValorCuota` decimal(17,2) DEFAULT NULL,
   `vendedor_id` int DEFAULT NULL,
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS `cuotas` (
   `Comprobante_Id` int DEFAULT NULL,
   `Fecha` datetime DEFAULT NULL,
   `Importe` decimal(17,2) DEFAULT NULL,
+  `ImportePagado` decimal(17,2) DEFAULT 0,
   `Estado` varchar(3) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `FK__comprobantes` (`Comprobante_Id`) USING BTREE,
@@ -149,8 +151,26 @@ CREATE TABLE IF NOT EXISTS `subzonas` (
   `id` int NOT NULL AUTO_INCREMENT,
   `codigo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `descripcion` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  `provincia_id` int NOT NULL,
+  `codigo_postal` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `localidad` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `FK_subzonas_provincias` (`provincia_id`),
+  CONSTRAINT `FK_subzonas_provincias` FOREIGN KEY (`provincia_id`) REFERENCES `provincias` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS `transportes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `codigo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nombre` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `direccion` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `localidad` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `provincia_id` int DEFAULT NULL,
+  `cuit` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_transportes_provincias` (`provincia_id`),
+  CONSTRAINT `FK_transportes_provincias` FOREIGN KEY (`provincia_id`) REFERENCES `provincias` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE IF NOT EXISTS `tipodocumento` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -172,6 +192,22 @@ CREATE TABLE IF NOT EXISTS `zonas` (
   `descripcion` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `remitos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `numero` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `fecha` datetime DEFAULT CURRENT_TIMESTAMP,
+  `cliente_id` int NOT NULL,
+  `transporte_id` int NOT NULL,
+  `cantidad_bultos` int NOT NULL,
+  `valor_declarado` decimal(12,2) NOT NULL,
+  `observaciones` text COLLATE utf8mb4_general_ci,
+  PRIMARY KEY (`id`),
+  KEY `FK_remitos_clientes` (`cliente_id`),
+  KEY `FK_remitos_transportes` (`transporte_id`),
+  CONSTRAINT `FK_remitos_clientes` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`Id`),
+  CONSTRAINT `FK_remitos_transportes` FOREIGN KEY (`transporte_id`) REFERENCES `transportes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

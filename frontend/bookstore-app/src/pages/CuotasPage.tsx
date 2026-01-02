@@ -1,0 +1,326 @@
+import { useState, useEffect, useRef } from 'react';
+import { cuotaService } from '../services/cuotaService';
+import { referenceService } from '../services/referenceService';
+import type { CuotaListado } from '../types/cuota';
+import type { Zona } from '../types/references';
+import { PageHeader } from '../components/PageHeader';
+import { GradientButton } from '../components/GradientButton';
+
+const CuotasPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [cuotas, setCuotas] = useState<CuotaListado[]>([]);
+  const [zonas, setZonas] = useState<Zona[]>([]);
+  const [zonaId, setZonaId] = useState<number | ''>('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadZonas();
+  }, []);
+
+  useEffect(() => {
+    loadCuotas();
+  }, [zonaId]);
+
+  useEffect(() => {
+    if (editingId !== null && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
+
+  const loadZonas = async () => {
+    try {
+      const data = await referenceService.getZonas();
+      setZonas(data);
+    } catch (err) {
+      console.error('Error loading zonas:', err);
+    }
+  };
+
+  const loadCuotas = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await cuotaService.getAll(zonaId || undefined);
+      setCuotas(data);
+    } catch (err) {
+      setError('Error al cargar las cuotas');
+      console.error('Error loading cuotas:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFocus = (cuota: CuotaListado) => {
+    setEditingId(cuota.id);
+    // Auto-completar con el importe si importePagado es 0
+    if (cuota.importePagado === 0) {
+      setEditValue(cuota.importe.toString());
+    } else {
+      setEditValue(cuota.importePagado.toString());
+    }
+  };
+
+  const handleBlur = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = async (e: React.KeyboardEvent, cuota: CuotaListado) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newValue = parseFloat(editValue) || 0;
+
+      if (newValue !== cuota.importePagado) {
+        try {
+          setSaving(cuota.id);
+          await cuotaService.updateImportePagado(cuota.id, {
+            importePagado: newValue,
+            esCuotaCero: cuota.esCuotaCero,
+            comprobanteId: cuota.esCuotaCero ? cuota.comprobanteId : undefined
+          });
+
+          // Actualizar el estado local
+          setCuotas(prev => prev.map(c =>
+            c.id === cuota.id
+              ? {
+                  ...c,
+                  importePagado: newValue,
+                  estado: newValue >= c.importe ? 'PAG' : (newValue > 0 ? 'PAR' : 'PEN')
+                }
+              : c
+          ));
+        } catch (err) {
+          setError('Error al guardar el importe pagado');
+          console.error('Error updating importe pagado:', err);
+        } finally {
+          setSaving(null);
+        }
+      }
+
+      setEditingId(null);
+      setEditValue('');
+
+      // Mover al siguiente input
+      const currentIndex = cuotas.findIndex(c => c.id === cuota.id);
+      if (currentIndex < cuotas.length - 1) {
+        const nextCuota = cuotas[currentIndex + 1];
+        setTimeout(() => handleFocus(nextCuota), 50);
+      }
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+      setEditValue('');
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('es-AR');
+  };
+
+  const getEstadoStyle = (cuota: CuotaListado) => {
+    if (cuota.estado === 'PAG' || cuota.importePagado >= cuota.importe) {
+      return { backgroundColor: 'rgba(25, 135, 84, 0.1)', color: '#198754' };
+    }
+    if (cuota.importePagado > 0 && cuota.importePagado < cuota.importe) {
+      return { backgroundColor: 'rgba(255, 193, 7, 0.2)', color: '#856404' };
+    }
+    return { backgroundColor: 'rgba(220, 53, 69, 0.1)', color: '#dc3545' };
+  };
+
+  const getEstadoLabel = (cuota: CuotaListado) => {
+    if (cuota.estado === 'PAG' || cuota.importePagado >= cuota.importe) {
+      return 'Pagada';
+    }
+    if (cuota.importePagado > 0 && cuota.importePagado < cuota.importe) {
+      return 'Parcial';
+    }
+    return 'Pendiente';
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="Listado de Cuotas"
+        icon="fa-solid fa-money-check-dollar"
+      />
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* Filtros */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <div className="row align-items-end">
+            <div className="col-md-4 mb-3 mb-md-0">
+              <label className="form-label">Zona</label>
+              <select
+                className="form-select"
+                value={zonaId}
+                onChange={(e) => setZonaId(e.target.value ? parseInt(e.target.value, 10) : '')}
+              >
+                <option value="">Todas las zonas</option>
+                {zonas.map((z) => (
+                  <option key={z.id} value={z.id}>
+                    {z.descripcion}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3">
+              <GradientButton
+                icon={loading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-sync'}
+                onClick={loadCuotas}
+                disabled={loading}
+              >
+                {loading ? 'Cargando...' : 'Actualizar'}
+              </GradientButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla de resultados */}
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-gradient" />
+        </div>
+      ) : (
+        <div className="card">
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="custom-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: '100px' }}>Fecha Cuota</th>
+                    <th style={{ minWidth: '120px' }}>Nº Comprobante</th>
+                    <th style={{ minWidth: '100px' }}>Fecha Comp.</th>
+                    <th style={{ minWidth: '200px' }}>Cliente</th>
+                    <th style={{ minWidth: '100px' }}>Zona</th>
+                    <th style={{ minWidth: '100px' }} className="text-end">Importe</th>
+                    <th style={{ minWidth: '120px' }} className="text-end">Importe Pagado</th>
+                    <th style={{ minWidth: '80px' }} className="text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cuotas.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-4">
+                        No hay cuotas para mostrar
+                      </td>
+                    </tr>
+                  ) : (
+                    cuotas.map((cuota) => (
+                      <tr key={cuota.id}>
+                        <td>
+                          {formatDate(cuota.fechaCuota)}
+                          {cuota.esCuotaCero && (
+                            <span
+                              className="badge ms-2"
+                              style={{
+                                backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                                color: '#6c757d',
+                                fontSize: '0.7rem'
+                              }}
+                            >
+                              C.Entrega
+                            </span>
+                          )}
+                        </td>
+                        <td>{cuota.numeroComprobante || '-'}</td>
+                        <td>{formatDate(cuota.fechaComprobante)}</td>
+                        <td>{cuota.clienteNombre}</td>
+                        <td>{cuota.zonaNombre || '-'}</td>
+                        <td className="text-end">{formatCurrency(cuota.importe)}</td>
+                        <td className="text-end">
+                          {editingId === cuota.id ? (
+                            <input
+                              ref={inputRef}
+                              type="number"
+                              className="form-control form-control-sm text-end"
+                              style={{ width: '120px', marginLeft: 'auto' }}
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={handleBlur}
+                              onKeyDown={(e) => handleKeyDown(e, cuota)}
+                              step="0.01"
+                              disabled={saving === cuota.id}
+                            />
+                          ) : (
+                            <span
+                              onClick={() => handleFocus(cuota)}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                display: 'inline-block',
+                                minWidth: '80px',
+                                border: '1px dashed #ccc'
+                              }}
+                              title="Click para editar"
+                            >
+                              {saving === cuota.id ? (
+                                <i className="fa-solid fa-spinner fa-spin" />
+                              ) : (
+                                formatCurrency(cuota.importePagado)
+                              )}
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="badge"
+                            style={{
+                              ...getEstadoStyle(cuota),
+                              padding: '6px 12px',
+                              fontWeight: 500
+                            }}
+                          >
+                            {getEstadoLabel(cuota)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {cuotas.length > 0 && (
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.05)' }}>
+                      <td colSpan={5}>TOTALES ({cuotas.length} cuotas)</td>
+                      <td className="text-end">
+                        {formatCurrency(cuotas.reduce((sum, c) => sum + c.importe, 0))}
+                      </td>
+                      <td className="text-end">
+                        {formatCurrency(cuotas.reduce((sum, c) => sum + c.importePagado, 0))}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+
+            {/* Instrucciones */}
+            <div className="mt-3 text-muted small">
+              <i className="fa-solid fa-info-circle me-2"></i>
+              Click en el importe pagado para editar. Presione Enter para guardar o Escape para cancelar.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CuotasPage;

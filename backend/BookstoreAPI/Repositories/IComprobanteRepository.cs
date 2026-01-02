@@ -13,5 +13,6 @@ namespace BookstoreAPI.Repositories
         Task<bool> DeleteAsync(int id);
         Task<List<ComprobanteDetalle>> GetDetallesByComprobanteIdAsync(int comprobanteId);
         Task<IEnumerable<IvaVentasDto>> GetIvaVentasAsync(DateTime fechaDesde, DateTime fechaHasta);
+        Task<DeudoresReporteDto> GetDeudoresAsync(int mes, int anio);
     }
 }

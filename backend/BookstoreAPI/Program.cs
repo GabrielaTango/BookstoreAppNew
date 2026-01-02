@@ -40,6 +40,7 @@ builder.Services.AddScoped<ICuotaRepository, CuotaRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IGastoRepository, GastoRepository>();
 builder.Services.AddScoped<ICategoriaGastoRepository, CategoriaGastoRepository>();
+builder.Services.AddScoped<IRemitoRepository, RemitoRepository>();
 
 // Registrar Services
 builder.Services.AddScoped<IClienteService, ClienteService>();
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IReferenceService, ReferenceService>();
 builder.Services.AddScoped<IComprobanteService, ComprobanteService>();
 builder.Services.AddScoped<IGastoService, GastoService>();
 builder.Services.AddScoped<ICategoriaGastoService, CategoriaGastoService>();
+builder.Services.AddScoped<IRemitoService, RemitoService>();
 
 // Registrar Services AFIP
 builder.Services.AddScoped<IAfipAuthService, AfipAuthService>();
@@ -58,6 +60,7 @@ builder.Services.AddScoped<IAfipQrService, AfipQrService>();
 builder.Services.AddScoped<IComprobantePdfService, ComprobantePdfService>();
 builder.Services.AddScoped<ICuotaPdfService, CuotaPdfService>();
 builder.Services.AddScoped<IIvaVentasPdfService, IvaVentasPdfService>();
+builder.Services.AddScoped<IRemitoPdfService, RemitoPdfService>();
 
 var app = builder.Build();
 

@@ -11,5 +11,6 @@ namespace BookstoreAPI.Repositories
         Task<bool> UpdateAsync(int id, Cliente cliente);
         Task<bool> DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
+        Task<int> GetNextCodigoAsync();
     }
 }

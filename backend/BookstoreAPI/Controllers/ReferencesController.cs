@@ -368,5 +368,93 @@ namespace BookstoreAPI.Controllers
                 return StatusCode(500, new { message = "Error al eliminar vendedor" });
             }
         }
+
+        // ===== TRANSPORTES =====
+        [HttpGet("transportes")]
+        public async Task<IActionResult> GetTransportes()
+        {
+            try
+            {
+                var transportes = await _referenceService.GetAllTransportesAsync();
+                return Ok(transportes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener transportes");
+                return StatusCode(500, new { message = "Error al obtener transportes" });
+            }
+        }
+
+        [HttpGet("transportes/{id}")]
+        public async Task<IActionResult> GetTransporteById(int id)
+        {
+            try
+            {
+                var transporte = await _referenceService.GetTransporteByIdAsync(id);
+                if (transporte == null)
+                    return NotFound(new { message = $"Transporte con ID {id} no encontrado" });
+                return Ok(transporte);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener transporte por ID");
+                return StatusCode(500, new { message = "Error al obtener transporte" });
+            }
+        }
+
+        [HttpPost("transportes")]
+        public async Task<IActionResult> CreateTransporte([FromBody] CreateTransporteDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var transporte = await _referenceService.CreateTransporteAsync(dto);
+                return CreatedAtAction(nameof(GetTransporteById), new { id = transporte.Id }, transporte);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear transporte");
+                return StatusCode(500, new { message = "Error al crear transporte" });
+            }
+        }
+
+        [HttpPut("transportes/{id}")]
+        public async Task<IActionResult> UpdateTransporte(int id, [FromBody] UpdateTransporteDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var transporte = await _referenceService.UpdateTransporteAsync(id, dto);
+                if (transporte == null)
+                    return NotFound(new { message = $"Transporte con ID {id} no encontrado" });
+                return Ok(transporte);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar transporte");
+                return StatusCode(500, new { message = "Error al actualizar transporte" });
+            }
+        }
+
+        [HttpDelete("transportes/{id}")]
+        public async Task<IActionResult> DeleteTransporte(int id)
+        {
+            try
+            {
+                var deleted = await _referenceService.DeleteTransporteAsync(id);
+                if (!deleted)
+                    return NotFound(new { message = $"Transporte con ID {id} no encontrado" });
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar transporte");
+                return StatusCode(500, new { message = "Error al eliminar transporte" });
+            }
+        }
     }
 }

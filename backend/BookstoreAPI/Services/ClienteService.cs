@@ -30,9 +30,12 @@ namespace BookstoreAPI.Services
 
         public async Task<Cliente> CreateClienteAsync(CreateClienteDto createDto)
         {
+            // Generar código autonumérico
+            var nextCodigo = await _clienteRepository.GetNextCodigoAsync();
+
             var cliente = new Cliente
             {
-                Codigo = createDto.Codigo,
+                Codigo = nextCodigo.ToString(),
                 Nombre = createDto.Nombre,
                 Zona_Id = createDto.Zona_Id,
                 SubZona_Id = createDto.SubZona_Id,

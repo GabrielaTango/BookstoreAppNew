@@ -33,6 +33,7 @@ namespace BookstoreAPI.Repositories
                     c.Bonificacion,
                     c.PorcentajeBonif,
                     c.Anticipo,
+                    c.ContraEntrega,
                     c.Cuotas,
                     c.ValorCuota,
                     c.vendedor_id AS Vendedor_Id,
@@ -70,6 +71,7 @@ namespace BookstoreAPI.Repositories
                     c.Bonificacion,
                     c.PorcentajeBonif,
                     c.Anticipo,
+                    c.ContraEntrega,
                     c.Cuotas,
                     c.ValorCuota,
                     c.vendedor_id AS Vendedor_Id,
@@ -105,6 +107,7 @@ namespace BookstoreAPI.Repositories
                     Bonificacion,
                     PorcentajeBonif,
                     Anticipo,
+                    ContraEntrega,
                     Cuotas,
                     ValorCuota,
                     vendedor_id AS Vendedor_Id
@@ -139,10 +142,10 @@ namespace BookstoreAPI.Repositories
             const string comprobanteQuery = @"
                 INSERT INTO comprobantes
                 (cliente_id, fecha, tipoComprobante, numeroComprobante, total, CAE, VTO,
-                 Bonificacion, PorcentajeBonif, Anticipo, Cuotas, ValorCuota, vendedor_id)
+                 Bonificacion, PorcentajeBonif, Anticipo, ContraEntrega, Cuotas, ValorCuota, vendedor_id)
                 VALUES
                 (@Cliente_Id, @Fecha, @TipoComprobante, @NumeroComprobante, @Total, @CAE, @VTO,
-                 @Bonificacion, @PorcentajeBonif, @Anticipo, @Cuotas, @ValorCuota, @Vendedor_Id);
+                 @Bonificacion, @PorcentajeBonif, @Anticipo, @ContraEntrega, @Cuotas, @ValorCuota, @Vendedor_Id);
                 SELECT LAST_INSERT_ID();";
 
             const string detalleQuery = @"
@@ -166,8 +169,8 @@ namespace BookstoreAPI.Repositories
                     await connection.ExecuteAsync(detalleQuery, detalle, transaction);
                 }
 
-                // Guardar cuotas si anticipo > 0 (dentro de la transacción)
-                if (comprobante.Anticipo > 0 && comprobante.Cuotas > 0 && comprobante.ValorCuota > 0)
+                // Guardar cuotas si hay cuotas definidas (dentro de la transacción)
+                if (comprobante.Cuotas > 0 && comprobante.ValorCuota > 0)
                 {
                     var cuotas = GenerarCuotas(comprobante);
                     await _cuotaRepository.CreateCuotasAsync(id, cuotas, connection, transaction);
@@ -217,6 +220,7 @@ namespace BookstoreAPI.Repositories
                     Bonificacion = @Bonificacion,
                     PorcentajeBonif = @PorcentajeBonif,
                     Anticipo = @Anticipo,
+                    ContraEntrega = @ContraEntrega,
                     Cuotas = @Cuotas,
                     ValorCuota = @ValorCuota,
                     vendedor_id = @Vendedor_Id
@@ -250,6 +254,7 @@ namespace BookstoreAPI.Repositories
                         comprobante.Bonificacion,
                         comprobante.PorcentajeBonif,
                         comprobante.Anticipo,
+                        comprobante.ContraEntrega,
                         comprobante.Cuotas,
                         comprobante.ValorCuota,
                         comprobante.Vendedor_Id
@@ -273,7 +278,7 @@ namespace BookstoreAPI.Repositories
 
                 // Actualizar cuotas (dentro de la transacción)
                 await _cuotaRepository.DeleteByComprobanteIdAsync(id, connection, transaction);
-                if (comprobante.Anticipo > 0 && comprobante.Cuotas > 0 && comprobante.ValorCuota > 0)
+                if (comprobante.Cuotas > 0 && comprobante.ValorCuota > 0)
                 {
                     comprobante.Id = id;
                     var cuotas = GenerarCuotas(comprobante);
@@ -353,6 +358,139 @@ namespace BookstoreAPI.Repositories
             using var connection = _context.CreateConnection();
             var ventas = await connection.QueryAsync<IvaVentasDto>(query, new { FechaDesde = fechaDesde, FechaHasta = fechaHasta });
             return ventas;
+        }
+
+        public async Task<DeudoresReporteDto> GetDeudoresAsync(int mes, int anio)
+        {
+            // Query para obtener comprobantes del mes/año especificado
+            const string comprobantesQuery = @"
+                SELECT
+                    c.id AS Id,
+                    c.numeroComprobante AS NumeroComprobante,
+                    cl.Nombre AS RazonSocial,
+                    v.codigo AS CodigoVendedor,
+                    COALESCE(c.Cuotas, 0) AS CantidadCuotas,
+                    c.total AS TotalComprobante,
+                    COALESCE(c.Anticipo, 0) AS Anticipo,
+                    COALESCE(c.ContraEntrega, 0) AS ContraEntrega,
+                    c.fecha AS Fecha
+                FROM comprobantes c
+                INNER JOIN clientes cl ON c.cliente_id = cl.Id
+                LEFT JOIN vendedores v ON c.vendedor_id = v.id
+                WHERE MONTH(c.fecha) = @Mes AND YEAR(c.fecha) = @Anio
+                ORDER BY c.fecha, c.numeroComprobante";
+
+            // Query para obtener cuotas de los comprobantes
+            const string cuotasQuery = @"
+                SELECT
+                    cu.Id,
+                    cu.Comprobante_Id,
+                    cu.Fecha,
+                    COALESCE(cu.Importe, 0) AS Importe,
+                    COALESCE(cu.importe_pagado, 0) AS ImportePagado,
+                    cu.Estado
+                FROM cuotas cu
+                INNER JOIN comprobantes c ON cu.Comprobante_Id = c.id
+                WHERE MONTH(c.fecha) = @Mes AND YEAR(c.fecha) = @Anio
+                ORDER BY cu.Comprobante_Id, cu.Fecha";
+
+            using var connection = _context.CreateConnection();
+
+            var comprobantesData = await connection.QueryAsync<dynamic>(comprobantesQuery, new { Mes = mes, Anio = anio });
+            var cuotasData = await connection.QueryAsync<dynamic>(cuotasQuery, new { Mes = mes, Anio = anio });
+
+            var resultado = new DeudoresReporteDto
+            {
+                Mes = mes,
+                Anio = anio,
+                PeriodosCuotas = new List<string>(),
+                Deudores = new List<DeudorItemDto>()
+            };
+
+            // Agrupar cuotas por comprobante
+            var cuotasPorComprobante = cuotasData
+                .GroupBy(c => (int)c.Comprobante_Id)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Recopilar todos los períodos únicos
+            var periodosSet = new HashSet<string>();
+
+            foreach (var comp in comprobantesData)
+            {
+                var comprobanteId = (int)comp.Id;
+                var deudor = new DeudorItemDto
+                {
+                    ComprobanteId = comprobanteId,
+                    NumeroComprobante = comp.NumeroComprobante ?? "",
+                    RazonSocial = comp.RazonSocial ?? "",
+                    CodigoVendedor = comp.CodigoVendedor,
+                    CantidadCuotas = (int)comp.CantidadCuotas,
+                    TotalComprobante = (decimal)comp.TotalComprobante,
+                    Anticipo = (decimal)comp.Anticipo,
+                    ContraEntrega = (decimal)comp.ContraEntrega,
+                    ContraEntregaPagado = 0, // Por ahora, asumir no pagado
+                    Cuotas = new List<CuotaDeudorDto>()
+                };
+
+                // Agregar período de contra entrega (factura) si existe
+                if (deudor.ContraEntrega > 0)
+                {
+                    var fechaComp = (DateTime)comp.Fecha;
+                    var periodoFactura = fechaComp.ToString("MM/yyyy");
+                    periodosSet.Add(periodoFactura);
+
+                    deudor.Cuotas.Add(new CuotaDeudorDto
+                    {
+                        CuotaId = 0, // 0 indica que es la factura/contra entrega
+                        Periodo = periodoFactura,
+                        Importe = deudor.ContraEntrega,
+                        ImportePagado = deudor.ContraEntregaPagado,
+                        Estado = deudor.ContraEntregaPagado >= deudor.ContraEntrega ? "PAG" : "PEN"
+                    });
+                }
+
+                // Agregar cuotas
+                if (cuotasPorComprobante.TryGetValue(comprobanteId, out var cuotas))
+                {
+                    foreach (var cuota in cuotas)
+                    {
+                        var fechaCuota = (DateTime?)cuota.Fecha;
+                        var periodo = fechaCuota?.ToString("MM/yyyy") ?? "";
+                        periodosSet.Add(periodo);
+
+                        deudor.Cuotas.Add(new CuotaDeudorDto
+                        {
+                            CuotaId = (int)cuota.Id,
+                            Periodo = periodo,
+                            Importe = (decimal)cuota.Importe,
+                            ImportePagado = (decimal)cuota.ImportePagado,
+                            Estado = cuota.Estado ?? "PEN"
+                        });
+                    }
+                }
+
+                // Calcular saldo
+                var totalPagado = deudor.Anticipo + deudor.ContraEntregaPagado +
+                                  deudor.Cuotas.Where(c => c.CuotaId > 0).Sum(c => c.ImportePagado);
+                deudor.Saldo = deudor.TotalComprobante - totalPagado;
+
+                resultado.Deudores.Add(deudor);
+            }
+
+            // Ordenar períodos cronológicamente
+            resultado.PeriodosCuotas = periodosSet
+                .OrderBy(p =>
+                {
+                    var parts = p.Split('/');
+                    if (parts.Length == 2 && int.TryParse(parts[0], out int m) && int.TryParse(parts[1], out int a))
+                    {
+                        return a * 100 + m;
+                    }
+                    return 0;
+                })
+                .ToList();
+
+            return resultado;
         }
     }
 }

@@ -232,5 +232,157 @@ namespace BookstoreAPI.Services.Pdf
                 _ => "C"
             };
         }
+
+        public byte[] GenerarComprobanteCompletoConCupones(Comprobante comprobante, Cliente cliente, List<ComprobanteDetalle> detalles, List<Cuota> cuotas)
+        {
+            try
+            {
+                var document = Document.Create(container =>
+                {
+                    // ===== COMPROBANTE POR TRIPLICADO (3 páginas) =====
+                    for (int copia = 1; copia <= 3; copia++)
+                    {
+                        container.Page(page =>
+                        {
+                            page.Size(PageSizes.A4);
+                            page.Margin(2, Unit.Centimetre);
+                            page.DefaultTextStyle(x => x.FontSize(10));
+
+                            page.Header().Element(ComposeHeader);
+                            page.Content().Element(c => ComposeContent(c, comprobante, cliente, detalles));
+                            page.Footer().AlignCenter().Text(text =>
+                            {
+                                text.Span("Página ");
+                                text.CurrentPageNumber();
+                                text.Span(" de ");
+                                text.TotalPages();
+                            });
+                        });
+                    }
+
+                    // ===== CUPONES DE CUOTAS =====
+                    if (cuotas.Any())
+                    {
+                        container.Page(page =>
+                        {
+                            page.Size(PageSizes.A4);
+                            page.Margin(30);
+                            page.DefaultTextStyle(x => x.FontSize(10));
+
+                            page.Header().Element(c => ComposeCuponesHeader(c, cliente, comprobante, cuotas));
+                            page.Content().Element(c => ComposeCuponesContent(c, cliente, comprobante, cuotas));
+                        });
+                    }
+                });
+
+                return document.GeneratePdf();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar PDF completo del comprobante con cupones");
+                throw;
+            }
+        }
+
+        private void ComposeCuponesHeader(IContainer container, Cliente cliente, Comprobante comprobante, List<Cuota> cuotas)
+        {
+            container.Column(column =>
+            {
+                column.Item().Border(1).Padding(10).Row(row =>
+                {
+                    // Columna izquierda - Datos del cliente
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text(text =>
+                        {
+                            text.Span($"Cliente: {cliente.Nombre} - {cliente.Id}").Bold();
+                        });
+                        c.Item().Text($"Domicilio Com: {cliente.DomicilioComercial ?? "-"}").FontSize(10);
+                        c.Item().Text($"Dirección Part: {cliente.DomicilioParticular ?? "-"}").FontSize(10);
+                        c.Item().Text($"Teléfono: {cliente.Telefono ?? cliente.TelefonoMovil ?? "-"}").FontSize(10);
+                    });
+
+                    // Columna derecha - Datos del comprobante
+                    row.RelativeItem().AlignRight().Column(c =>
+                    {
+                        c.Item().Text($"Email: {cliente.EMail ?? "-"}").FontSize(10);
+                        c.Item().Text($"Documento: {cliente.NroDocumento ?? "-"}").FontSize(10);
+                        c.Item().Text($"Factura: {comprobante.NumeroComprobante}").FontSize(10);
+                        c.Item().Text($"Fecha: {comprobante.Fecha:dd/MM/yyyy}").FontSize(10);
+                    });
+                });
+
+                // Resumen de cuotas
+                var anticipo = comprobante.Anticipo ?? 0;
+                var primerCuota = cuotas.FirstOrDefault();
+                var montoCuota = primerCuota?.Importe ?? 0;
+
+                column.Item().Border(1).Padding(5)
+                    .Text($"Anticipo: ${anticipo:N2} - {cuotas.Count} Cuotas de ${montoCuota:N2}")
+                    .FontSize(12).Bold().AlignCenter();
+            });
+        }
+
+        private void ComposeCuponesContent(IContainer container, Cliente cliente, Comprobante comprobante, List<Cuota> cuotas)
+        {
+            container.Table(table =>
+            {
+                // Definir 4 columnas
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+
+                int numeroCuota = 1;
+                foreach (var cuota in cuotas)
+                {
+                    RenderCuponCell(table, cliente, comprobante, cuota, numeroCuota);
+                    numeroCuota++;
+                }
+            });
+        }
+
+        private void RenderCuponCell(TableDescriptor table, Cliente cliente, Comprobante comprobante, Cuota cuota, int numeroCuota)
+        {
+            table.Cell().Padding(5).Element(container =>
+            {
+                container.Border(1).Padding(5).Column(c =>
+                {
+                    c.Spacing(3);
+
+                    // Encabezado del cupón
+                    c.Item().Border(1).Background(Colors.Grey.Lighten3)
+                        .Padding(5).Text("BOOKSTORE APP").FontSize(11).Bold().AlignCenter();
+
+                    // Datos del cliente
+                    c.Item().Text($"Sr/a: {cliente.Nombre}").FontSize(9);
+
+                    // Mes y año de vencimiento
+                    c.Item().Text($"Mes: {cuota.Fecha?.ToString("MM/yyyy") ?? "-"}").FontSize(9);
+
+                    // Monto y número de cuota
+                    c.Item().Row(row =>
+                    {
+                        row.RelativeItem(70).Column(col =>
+                        {
+                            col.Item().Text($"Cuota: ${cuota.Importe:N2}").FontSize(10).Bold();
+                            col.Item().Text($"Estado: {cuota.Estado}").FontSize(8);
+                        });
+
+                        row.RelativeItem(30).Column(col =>
+                        {
+                            col.Item().AlignRight().Padding(4)
+                                .Text($"{numeroCuota}").FontSize(16).Bold();
+                        });
+                    });
+
+                    // Información adicional
+                    c.Item().PaddingTop(3).Text($"Factura: {comprobante.NumeroComprobante}").FontSize(7);
+                });
+            });
+        }
     }
 }

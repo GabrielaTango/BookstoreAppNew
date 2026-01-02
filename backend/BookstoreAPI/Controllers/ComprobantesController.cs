@@ -240,5 +240,63 @@ namespace BookstoreAPI.Controllers
                 return StatusCode(500, new { message = "Error al generar PDF de IVA ventas", error = ex.Message });
             }
         }
+
+        [HttpGet("deudores")]
+        public async Task<IActionResult> GetDeudores([FromQuery] int mes, [FromQuery] int anio)
+        {
+            try
+            {
+                // Validar mes y año
+                if (mes < 1 || mes > 12)
+                    return BadRequest(new { message = "El mes debe estar entre 1 y 12" });
+
+                if (anio < 2000 || anio > 2100)
+                    return BadRequest(new { message = "El año debe estar entre 2000 y 2100" });
+
+                // Obtener datos de deudores
+                var deudores = await _comprobanteRepository.GetDeudoresAsync(mes, anio);
+                return Ok(deudores);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener datos de deudores");
+                return StatusCode(500, new { message = "Error al obtener datos de deudores", error = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/completo-pdf")]
+        public async Task<IActionResult> GetCompletoPdf(int id)
+        {
+            try
+            {
+                // Obtener comprobante
+                var comprobante = await _comprobanteRepository.GetComprobanteByIdAsync(id);
+                if (comprobante == null)
+                    return NotFound(new { message = $"Comprobante con ID {id} no encontrado" });
+
+                // Obtener cliente
+                var cliente = await _clienteRepository.GetByIdAsync(comprobante.Cliente_Id);
+                if (cliente == null)
+                    return NotFound(new { message = "Cliente no encontrado" });
+
+                // Obtener detalles del comprobante
+                var detalles = await _comprobanteRepository.GetDetallesByComprobanteIdAsync(id);
+
+                // Obtener cuotas del comprobante
+                var cuotas = await _cuotaRepository.GetByComprobanteIdAsync(id);
+                var listaCuotas = cuotas.ToList();
+
+                // Generar PDF completo (comprobante x3 + cupones)
+                var pdfBytes = _pdfService.GenerarComprobanteCompletoConCupones(comprobante, cliente, detalles, listaCuotas);
+
+                // Retornar PDF para abrir en el navegador
+                return File(pdfBytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar PDF completo del comprobante {Id}", id);
+                return StatusCode(500, new { message = "Error al generar PDF completo del comprobante", error = ex.Message });
+            }
+        }
     }
 }

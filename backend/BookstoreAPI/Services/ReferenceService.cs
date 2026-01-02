@@ -65,7 +65,10 @@ namespace BookstoreAPI.Services
             var subZona = new SubZona
             {
                 Codigo = dto.Codigo,
-                Descripcion = dto.Descripcion
+                Descripcion = dto.Descripcion,
+                ProvinciaId = dto.ProvinciaId,
+                CodigoPostal = dto.CodigoPostal,
+                Localidad = dto.Localidad
             };
             return await _referenceRepository.CreateSubZonaAsync(subZona);
         }
@@ -75,7 +78,10 @@ namespace BookstoreAPI.Services
             var subZona = new SubZona
             {
                 Codigo = dto.Codigo,
-                Descripcion = dto.Descripcion
+                Descripcion = dto.Descripcion,
+                ProvinciaId = dto.ProvinciaId,
+                CodigoPostal = dto.CodigoPostal,
+                Localidad = dto.Localidad
             };
             return await _referenceRepository.UpdateSubZonaAsync(id, subZona);
         }
@@ -155,6 +161,50 @@ namespace BookstoreAPI.Services
         public async Task<bool> DeleteVendedorAsync(int id)
         {
             return await _referenceRepository.DeleteVendedorAsync(id);
+        }
+
+        // Transporte - CRUD Operations
+        public async Task<IEnumerable<Transporte>> GetAllTransportesAsync()
+        {
+            return await _referenceRepository.GetAllTransportesAsync();
+        }
+
+        public async Task<Transporte?> GetTransporteByIdAsync(int id)
+        {
+            return await _referenceRepository.GetTransporteByIdAsync(id);
+        }
+
+        public async Task<Transporte> CreateTransporteAsync(CreateTransporteDto dto)
+        {
+            var transporte = new Transporte
+            {
+                Codigo = dto.Codigo,
+                Nombre = dto.Nombre,
+                Direccion = dto.Direccion,
+                Localidad = dto.Localidad,
+                ProvinciaId = dto.ProvinciaId,
+                Cuit = dto.Cuit
+            };
+            return await _referenceRepository.CreateTransporteAsync(transporte);
+        }
+
+        public async Task<Transporte?> UpdateTransporteAsync(int id, UpdateTransporteDto dto)
+        {
+            var transporte = new Transporte
+            {
+                Codigo = dto.Codigo,
+                Nombre = dto.Nombre,
+                Direccion = dto.Direccion,
+                Localidad = dto.Localidad,
+                ProvinciaId = dto.ProvinciaId,
+                Cuit = dto.Cuit
+            };
+            return await _referenceRepository.UpdateTransporteAsync(id, transporte);
+        }
+
+        public async Task<bool> DeleteTransporteAsync(int id)
+        {
+            return await _referenceRepository.DeleteTransporteAsync(id);
         }
     }
 }

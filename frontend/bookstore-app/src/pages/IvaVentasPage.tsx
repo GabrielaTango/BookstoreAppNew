@@ -7,8 +7,19 @@ import { GradientButton } from '../components/GradientButton';
 import { Icon } from '../components/Icon';
 
 const IvaVentasPage = () => {
-  const [fechaDesde, setFechaDesde] = useState<string>('');
-  const [fechaHasta, setFechaHasta] = useState<string>('');
+  // Por defecto el mes actual
+  const getFirstDayOfMonth = (): string => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  };
+
+  const getLastDayOfMonth = (): string => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  };
+
+  const [fechaDesde, setFechaDesde] = useState<string>(getFirstDayOfMonth());
+  const [fechaHasta, setFechaHasta] = useState<string>(getLastDayOfMonth());
   const [ventas, setVentas] = useState<IvaVenta[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);

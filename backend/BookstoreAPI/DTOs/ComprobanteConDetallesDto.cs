@@ -14,6 +14,7 @@ namespace BookstoreAPI.DTOs
         public decimal? Bonificacion { get; set; }
         public decimal? PorcentajeBonif { get; set; }
         public decimal? Anticipo { get; set; }
+        public decimal? ContraEntrega { get; set; }
         public int? Cuotas { get; set; }
         public decimal? ValorCuota { get; set; }
         public int? Vendedor_Id { get; set; }

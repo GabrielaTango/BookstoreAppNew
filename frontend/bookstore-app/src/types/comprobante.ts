@@ -11,6 +11,7 @@ export interface Comprobante {
   bonificacion?: number;
   porcentajeBonif?: number;
   anticipo?: number;
+  contraEntrega?: number;
   cuotas?: number;
   valorCuota?: number;
   vendedor_Id?: number;
@@ -39,6 +40,7 @@ export interface CreateComprobanteDto {
   bonificacion?: number;
   porcentajeBonif?: number;
   anticipo?: number;
+  contraEntrega?: number;
   cuotas?: number;
   valorCuota?: number;
   vendedor_Id?: number;
@@ -56,6 +58,7 @@ export interface UpdateComprobanteDto {
   bonificacion?: number;
   porcentajeBonif?: number;
   anticipo?: number;
+  contraEntrega?: number;
   cuotas?: number;
   valorCuota?: number;
   vendedor_Id?: number;

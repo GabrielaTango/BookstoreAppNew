@@ -6,6 +6,7 @@ namespace BookstoreAPI.Models
         public int? Comprobante_Id { get; set; }
         public DateTime? Fecha { get; set; }
         public decimal? Importe { get; set; }
+        public decimal? ImportePagado { get; set; }
         public string? Estado { get; set; }
     }
 }

@@ -64,14 +64,26 @@ namespace BookstoreAPI.Repositories
         // SubZona - CRUD Operations
         public async Task<IEnumerable<SubZona>> GetAllSubZonasAsync()
         {
-            const string query = "SELECT id AS Id, codigo AS Codigo, descripcion AS Descripcion FROM subzonas ORDER BY descripcion";
+            const string query = @"
+                SELECT s.id AS Id, s.codigo AS Codigo, s.descripcion AS Descripcion,
+                       s.provincia_id AS ProvinciaId, s.codigo_postal AS CodigoPostal, s.localidad AS Localidad,
+                       p.descripcion AS ProvinciaDescripcion
+                FROM subzonas s
+                LEFT JOIN provincias p ON s.provincia_id = p.id
+                ORDER BY s.descripcion";
             using var connection = _context.CreateConnection();
             return await connection.QueryAsync<SubZona>(query);
         }
 
         public async Task<SubZona?> GetSubZonaByIdAsync(int id)
         {
-            const string query = "SELECT id AS Id, codigo AS Codigo, descripcion AS Descripcion FROM subzonas WHERE id = @Id";
+            const string query = @"
+                SELECT s.id AS Id, s.codigo AS Codigo, s.descripcion AS Descripcion,
+                       s.provincia_id AS ProvinciaId, s.codigo_postal AS CodigoPostal, s.localidad AS Localidad,
+                       p.descripcion AS ProvinciaDescripcion
+                FROM subzonas s
+                LEFT JOIN provincias p ON s.provincia_id = p.id
+                WHERE s.id = @Id";
             using var connection = _context.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<SubZona>(query, new { Id = id });
         }
@@ -79,8 +91,8 @@ namespace BookstoreAPI.Repositories
         public async Task<SubZona> CreateSubZonaAsync(SubZona subZona)
         {
             const string query = @"
-                INSERT INTO subzonas (codigo, descripcion)
-                VALUES (@Codigo, @Descripcion);
+                INSERT INTO subzonas (codigo, descripcion, provincia_id, codigo_postal, localidad)
+                VALUES (@Codigo, @Descripcion, @ProvinciaId, @CodigoPostal, @Localidad);
                 SELECT LAST_INSERT_ID();";
             using var connection = _context.CreateConnection();
             var id = await connection.ExecuteScalarAsync<int>(query, subZona);
@@ -92,10 +104,18 @@ namespace BookstoreAPI.Repositories
         {
             const string query = @"
                 UPDATE subzonas
-                SET codigo = @Codigo, descripcion = @Descripcion
+                SET codigo = @Codigo, descripcion = @Descripcion,
+                    provincia_id = @ProvinciaId, codigo_postal = @CodigoPostal, localidad = @Localidad
                 WHERE id = @Id";
             using var connection = _context.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(query, new { Id = id, subZona.Codigo, subZona.Descripcion });
+            var affectedRows = await connection.ExecuteAsync(query, new {
+                Id = id,
+                subZona.Codigo,
+                subZona.Descripcion,
+                subZona.ProvinciaId,
+                subZona.CodigoPostal,
+                subZona.Localidad
+            });
             if (affectedRows == 0) return null;
             subZona.Id = id;
             return subZona;
@@ -200,6 +220,77 @@ namespace BookstoreAPI.Repositories
         public async Task<bool> DeleteVendedorAsync(int id)
         {
             const string query = "DELETE FROM vendedores WHERE id = @Id";
+            using var connection = _context.CreateConnection();
+            var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+            return affectedRows > 0;
+        }
+
+        // Transporte - CRUD Operations
+        public async Task<IEnumerable<Transporte>> GetAllTransportesAsync()
+        {
+            const string query = @"
+                SELECT t.id AS Id, t.codigo AS Codigo, t.nombre AS Nombre,
+                       t.direccion AS Direccion, t.localidad AS Localidad,
+                       t.provincia_id AS ProvinciaId, t.cuit AS Cuit,
+                       p.descripcion AS ProvinciaDescripcion
+                FROM transportes t
+                LEFT JOIN provincias p ON t.provincia_id = p.id
+                ORDER BY t.nombre";
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<Transporte>(query);
+        }
+
+        public async Task<Transporte?> GetTransporteByIdAsync(int id)
+        {
+            const string query = @"
+                SELECT t.id AS Id, t.codigo AS Codigo, t.nombre AS Nombre,
+                       t.direccion AS Direccion, t.localidad AS Localidad,
+                       t.provincia_id AS ProvinciaId, t.cuit AS Cuit,
+                       p.descripcion AS ProvinciaDescripcion
+                FROM transportes t
+                LEFT JOIN provincias p ON t.provincia_id = p.id
+                WHERE t.id = @Id";
+            using var connection = _context.CreateConnection();
+            return await connection.QueryFirstOrDefaultAsync<Transporte>(query, new { Id = id });
+        }
+
+        public async Task<Transporte> CreateTransporteAsync(Transporte transporte)
+        {
+            const string query = @"
+                INSERT INTO transportes (codigo, nombre, direccion, localidad, provincia_id, cuit)
+                VALUES (@Codigo, @Nombre, @Direccion, @Localidad, @ProvinciaId, @Cuit);
+                SELECT LAST_INSERT_ID();";
+            using var connection = _context.CreateConnection();
+            var id = await connection.ExecuteScalarAsync<int>(query, transporte);
+            transporte.Id = id;
+            return transporte;
+        }
+
+        public async Task<Transporte?> UpdateTransporteAsync(int id, Transporte transporte)
+        {
+            const string query = @"
+                UPDATE transportes
+                SET codigo = @Codigo, nombre = @Nombre, direccion = @Direccion,
+                    localidad = @Localidad, provincia_id = @ProvinciaId, cuit = @Cuit
+                WHERE id = @Id";
+            using var connection = _context.CreateConnection();
+            var affectedRows = await connection.ExecuteAsync(query, new {
+                Id = id,
+                transporte.Codigo,
+                transporte.Nombre,
+                transporte.Direccion,
+                transporte.Localidad,
+                transporte.ProvinciaId,
+                transporte.Cuit
+            });
+            if (affectedRows == 0) return null;
+            transporte.Id = id;
+            return transporte;
+        }
+
+        public async Task<bool> DeleteTransporteAsync(int id)
+        {
+            const string query = "DELETE FROM transportes WHERE id = @Id";
             using var connection = _context.CreateConnection();
             var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
             return affectedRows > 0;

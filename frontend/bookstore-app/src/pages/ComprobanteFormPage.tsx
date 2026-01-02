@@ -46,8 +46,9 @@ const ComprobanteFormPage = () => {
     precio_Unitario: 0,
   });
 
-  // Cálculo de cuotas
+  // Cálculo de cuotas (se define ANTES de cargar items)
   const [anticipo, setAnticipo] = useState<number>(0);
+  const [contraEntrega, setContraEntrega] = useState<number>(0);
   const [cantidadCuotas, setCantidadCuotas] = useState<number>(1);
   const [valorCuota, setValorCuota] = useState<number>(0);
 
@@ -70,9 +71,10 @@ const ComprobanteFormPage = () => {
     }
   }, [selectedClienteId]);
 
-  useEffect(() => {
-    calcularCuotas();
-  }, [items, anticipo, cantidadCuotas]);
+  // El total se calcula automáticamente
+  const calcularTotalComprobante = (): number => {
+    return anticipo + contraEntrega + (cantidadCuotas * valorCuota);
+  };
 
   const loadInitialData = async () => {
     try {
@@ -100,7 +102,9 @@ const ComprobanteFormPage = () => {
       setSelectedClienteId(comprobante.cliente_Id);
       setSelectedVendedorId(comprobante.vendedor_Id || null);
       setAnticipo(comprobante.anticipo || 0);
+      setContraEntrega(comprobante.contraEntrega || 0);
       setCantidadCuotas(comprobante.cuotas || 1);
+      setValorCuota(comprobante.valorCuota || 0);
 
       const itemsTemp: ItemTemp[] = comprobante.detalles.map((d, index) => ({
         tempId: index + 1,
@@ -222,19 +226,14 @@ const ComprobanteFormPage = () => {
     setError(null);
   };
 
-  const calcularTotal = (): number => {
+  const calcularTotalItems = (): number => {
     return items.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-  const calcularCuotas = () => {
-    const total = calcularTotal();
-    const saldoFinanciar = total - anticipo;
-
-    if (cantidadCuotas > 0 && saldoFinanciar > 0) {
-      setValorCuota(saldoFinanciar / cantidadCuotas);
-    } else {
-      setValorCuota(0);
-    }
+  const validarTotales = (): boolean => {
+    const totalItems = calcularTotalItems();
+    const totalComprobante = calcularTotalComprobante();
+    return Math.abs(totalItems - totalComprobante) < 0.01; // Tolerancia de centavos
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,12 +245,25 @@ const ComprobanteFormPage = () => {
       return;
     }
 
+    const totalComprobante = calcularTotalComprobante();
+
+    if (totalComprobante <= 0) {
+      setError('El total del comprobante debe ser mayor a 0');
+      return;
+    }
+
     if (items.length === 0) {
       setError('Debe agregar al menos un item');
       return;
     }
 
-    const total = calcularTotal();
+    if (!validarTotales()) {
+      const totalItems = calcularTotalItems();
+      const diferencia = totalComprobante - totalItems;
+      setError(`El total de items ($${totalItems.toFixed(2)}) no coincide con el total calculado ($${totalComprobante.toFixed(2)}). Diferencia: $${diferencia.toFixed(2)}`);
+      return;
+    }
+
     const detalles: ComprobanteDetalleDto[] = items.map(item => ({
       articulo_Id: item.articulo_Id,
       cantidad: item.cantidad,
@@ -263,9 +275,10 @@ const ComprobanteFormPage = () => {
       cliente_Id: selectedClienteId,
       fecha: new Date().toISOString(),
       tipoComprobante: 'FC',
-      total: total,
+      total: totalComprobante,
       vendedor_Id: selectedVendedorId || undefined,
       anticipo: anticipo,
+      contraEntrega: contraEntrega,
       cuotas: cantidadCuotas,
       valorCuota: valorCuota,
       detalles: detalles,
@@ -405,6 +418,86 @@ const ComprobanteFormPage = () => {
           </div>
         </GradientCard>
 
+        <GradientCard title="Cálculo de Cuotas" icon="fa-solid fa-calculator" className="mt-4">
+          <div className="row">
+            <div className="col-md-2">
+              <FormGroup label="Anticipo">
+                <div className="input-group">
+                  <span className="input-group-text">$</span>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={anticipo}
+                    onChange={(e) => setAnticipo(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <small className="form-text text-muted">Pago anticipado</small>
+              </FormGroup>
+            </div>
+            <div className="col-md-2">
+              <FormGroup label="Contra Entrega">
+                <div className="input-group">
+                  <span className="input-group-text">$</span>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={contraEntrega}
+                    onChange={(e) => setContraEntrega(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <small className="form-text text-muted">Factura</small>
+              </FormGroup>
+            </div>
+            <div className="col-md-2">
+              <FormGroup label="Cuotas">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={cantidadCuotas}
+                  onChange={(e) => setCantidadCuotas(parseInt(e.target.value) || 1)}
+                  min="1"
+                  max="60"
+                />
+              </FormGroup>
+            </div>
+            <div className="col-md-2">
+              <FormGroup label="Valor Cuota">
+                <div className="input-group">
+                  <span className="input-group-text">$</span>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={valorCuota}
+                    onChange={(e) => setValorCuota(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </FormGroup>
+            </div>
+            <div className="col-md-4">
+              <FormGroup label="TOTAL">
+                <div className="input-group">
+                  <span className="input-group-text">$</span>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg fw-bold text-end bg-light"
+                    value={calcularTotalComprobante().toFixed(2)}
+                    readOnly
+                  />
+                </div>
+                <small className="form-text text-muted">
+                  Anticipo + Contra Entrega + ({cantidadCuotas} × ${valorCuota.toFixed(2)})
+                </small>
+              </FormGroup>
+            </div>
+          </div>
+        </GradientCard>
+
         <GradientCard title="Items del Comprobante" icon="fa-solid fa-box" className="mt-4">
           <div className="d-flex justify-content-end">
             <GradientButton
@@ -461,74 +554,28 @@ const ComprobanteFormPage = () => {
                     </tr>
                   ))}
                   <tr className="table-primary">
-                    <td colSpan={4} className="text-end"><strong>TOTAL:</strong></td>
-                    <td className="text-end"><strong>${calcularTotal().toFixed(2)}</strong></td>
+                    <td colSpan={4} className="text-end"><strong>TOTAL ITEMS:</strong></td>
+                    <td className="text-end"><strong>${calcularTotalItems().toFixed(2)}</strong></td>
                     <td></td>
                   </tr>
                 </tbody>
               </table>
             </div>
           )}
+          {items.length > 0 && calcularTotalComprobante() > 0 && (
+            <div className={`alert mt-3 mb-0 ${validarTotales() ? 'alert-success' : 'alert-warning'}`}>
+              <Icon name={validarTotales() ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation'} />
+              {validarTotales() ? (
+                <strong>Los totales coinciden correctamente</strong>
+              ) : (
+                <>
+                  <strong>Diferencia:</strong> ${(calcularTotalComprobante() - calcularTotalItems()).toFixed(2)}
+                  <span className="ms-2">(Total calculado: ${calcularTotalComprobante().toFixed(2)} - Total items: ${calcularTotalItems().toFixed(2)})</span>
+                </>
+              )}
+            </div>
+          )}
         </GradientCard>
-
-        {items.length > 0 && (
-          <GradientCard title="Cálculo de Cuotas" icon="fa-solid fa-calculator" className="mt-4">
-            <div className="row">
-              <div className="col-md-3">
-                <FormGroup label="Total">
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={`$${calcularTotal().toFixed(2)}`}
-                    readOnly
-                  />
-                </FormGroup>
-              </div>
-              <div className="col-md-3">
-                <FormGroup label="Anticipo">
-                  <div className="input-group">
-                    <span className="input-group-text">$</span>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={anticipo}
-                      onChange={(e) => setAnticipo(parseFloat(e.target.value) || 0)}
-                      min="0"
-                      max={calcularTotal()}
-                      step="0.01"
-                    />
-                  </div>
-                </FormGroup>
-              </div>
-              <div className="col-md-3">
-                <FormGroup label="Cantidad de Cuotas">
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={cantidadCuotas}
-                    onChange={(e) => setCantidadCuotas(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="60"
-                  />
-                </FormGroup>
-              </div>
-              <div className="col-md-3">
-                <FormGroup label="Valor por Cuota">
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={`$${valorCuota.toFixed(2)}`}
-                    readOnly
-                  />
-                </FormGroup>
-              </div>
-            </div>
-            <div className="alert alert-info mt-3 mb-0">
-              <Icon name="fa-solid fa-circle-info" />
-              <strong>Saldo a Financiar:</strong> ${(calcularTotal() - anticipo).toFixed(2)}
-            </div>
-          </GradientCard>
-        )}
 
         <div className="d-flex gap-2 mt-4">
           <GradientButton

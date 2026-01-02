@@ -29,10 +29,10 @@ const ClienteFormPage = () => {
     domicilioParticular: '',
     codigoPostal: '',
     contacto: '',
-    tipoDocumento: '',
+    tipoDocumento: 'DNI',
     nroDocumento: '',
     nroIIBB: '',
-    categoriaIva: '',
+    categoriaIva: 'Consumidor Final',
     condicionPago: '',
     descuento: 0,
     soloContado: false,
@@ -111,6 +111,21 @@ const ClienteFormPage = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
+
+    // Si se selecciona una SubZona, autocompletar Provincia y Código Postal
+    if (name === 'subZona_Id' && value) {
+      const selectedSubZona = subzonas.find(sz => sz.id === parseInt(value));
+      if (selectedSubZona) {
+        setFormData((prev) => ({
+          ...prev,
+          subZona_Id: parseInt(value),
+          provincia_Id: selectedSubZona.provinciaId || prev.provincia_Id,
+          codigoPostal: selectedSubZona.codigoPostal || prev.codigoPostal,
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]:
@@ -124,6 +139,13 @@ const ClienteFormPage = () => {
           ? parseInt(value)
           : value,
     }));
+  };
+
+  // Obtener la localidad de la SubZona seleccionada
+  const getLocalidadFromSubZona = (): string => {
+    if (!formData.subZona_Id) return '';
+    const selectedSubZona = subzonas.find(sz => sz.id === formData.subZona_Id);
+    return selectedSubZona?.localidad || '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,20 +219,21 @@ const ClienteFormPage = () => {
       <form onSubmit={handleSubmit}>
         <GradientCard title="Información General" icon="fa-solid fa-user">
           <div className="row">
-            <div className="col-md-6">
-              <FormGroup label="Código">
-                <input
-                  type="text"
-                  className="form-control"
-                  name="codigo"
-                  value={formData.codigo}
-                  onChange={handleChange}
-                  placeholder="Código del cliente"
-                />
-              </FormGroup>
-            </div>
+            {isEditMode && (
+              <div className="col-md-6">
+                <FormGroup label="Código">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.codigo}
+                    readOnly
+                    disabled
+                  />
+                </FormGroup>
+              </div>
+            )}
 
-            <div className="col-md-6">
+            <div className={isEditMode ? "col-md-6" : "col-md-12"}>
               <FormGroup label="Nombre" required>
                 <input
                   type="text"
@@ -463,57 +486,21 @@ const ClienteFormPage = () => {
                 />
               </FormGroup>
             </div>
-          </div>
-        </GradientCard>
-
-        <GradientCard title="Condiciones Comerciales" icon="fa-solid fa-money-bills" className="mt-4">
-          <div className="row">
-            <div className="col-md-6">
-              <FormGroup label="Condición de Pago">
-                <select
-                  className="form-select"
-                  name="condicionPago"
-                  value={formData.condicionPago}
-                  onChange={handleChange}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Contado">Contado</option>
-                  <option value="Cuenta Corriente">Cuenta Corriente</option>
-                  <option value="30 días">30 días</option>
-                  <option value="60 días">60 días</option>
-                </select>
-              </FormGroup>
-            </div>
 
             <div className="col-md-6">
-              <FormGroup label="Descuento (%)">
+              <FormGroup label="Localidad">
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
-                  name="descuento"
-                  value={formData.descuento}
-                  onChange={handleChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  value={getLocalidadFromSubZona()}
+                  placeholder="Se completa automáticamente con la SubZona"
+                  readOnly
+                  disabled
                 />
+                <small className="form-text text-muted">
+                  Se completa automáticamente al seleccionar una SubZona
+                </small>
               </FormGroup>
-            </div>
-
-            <div className="col-12">
-              <div className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="soloContado"
-                  name="soloContado"
-                  checked={formData.soloContado}
-                  onChange={handleChange}
-                />
-                <label className="form-check-label" htmlFor="soloContado">
-                  Solo opera en contado
-                </label>
-              </div>
             </div>
           </div>
         </GradientCard>

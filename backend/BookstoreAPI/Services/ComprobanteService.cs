@@ -46,6 +46,7 @@ namespace BookstoreAPI.Services
                 Bonificacion = dto.Bonificacion,
                 PorcentajeBonif = dto.PorcentajeBonif,
                 Anticipo = dto.Anticipo,
+                ContraEntrega = dto.ContraEntrega,
                 Cuotas = dto.Cuotas,
                 ValorCuota = dto.ValorCuota,
                 Vendedor_Id = dto.Vendedor_Id
@@ -106,6 +107,7 @@ namespace BookstoreAPI.Services
                 Bonificacion = dto.Bonificacion,
                 PorcentajeBonif = dto.PorcentajeBonif,
                 Anticipo = dto.Anticipo,
+                ContraEntrega = dto.ContraEntrega,
                 Cuotas = dto.Cuotas,
                 ValorCuota = dto.ValorCuota,
                 Vendedor_Id = dto.Vendedor_Id

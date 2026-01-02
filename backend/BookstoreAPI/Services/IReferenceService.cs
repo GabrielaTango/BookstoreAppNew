@@ -32,5 +32,12 @@ namespace BookstoreAPI.Services
         Task<Vendedor> CreateVendedorAsync(CreateVendedorDto dto);
         Task<Vendedor?> UpdateVendedorAsync(int id, UpdateVendedorDto dto);
         Task<bool> DeleteVendedorAsync(int id);
+
+        // Transporte
+        Task<IEnumerable<Transporte>> GetAllTransportesAsync();
+        Task<Transporte?> GetTransporteByIdAsync(int id);
+        Task<Transporte> CreateTransporteAsync(CreateTransporteDto dto);
+        Task<Transporte?> UpdateTransporteAsync(int id, UpdateTransporteDto dto);
+        Task<bool> DeleteTransporteAsync(int id);
     }
 }

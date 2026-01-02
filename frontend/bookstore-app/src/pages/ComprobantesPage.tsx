@@ -98,6 +98,12 @@ const ComprobantesPage = () => {
                       <td className="text-end">${comprobante.total.toFixed(2)}</td>
                       <td className="text-center">
                         <IconButton
+                          icon="fa-solid fa-print"
+                          title="Imprimir Completo (Factura x3 + Cupones)"
+                          variant="success"
+                          onClick={() => comprobanteService.openCompletoPdf(comprobante.id)}
+                        />
+                        <IconButton
                           icon="fa-solid fa-file-pdf"
                           title="Ver PDF"
                           variant="info"
